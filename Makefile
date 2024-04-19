@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -Wall -std=c++17 -Wno-deprecated-declarations -Iinclude -I/usr/include/crypto++
+CXXFLAGS = -Wall -std=c++17 -Wno-deprecated-declarations -Iinclude -I/usr/include/crypto++ -I/usr/include/openssl
 
 # Linker flags
 LDFLAGS = -lcrypto -lcryptopp -pthread
@@ -23,24 +23,24 @@ SERVER_OBJ_DIR = obj/server
 
 # Source files
 COMMON_SOURCES = $(wildcard $(COMMON_SRC_DIR)/*.cpp)
-CLIENT_SOURCES = $(wildcard $(CLIENT_SRC_DIR)/*.cpp) $(COMMON_SOURCES)
-SERVER_SOURCES = $(wildcard $(SERVER_SRC_DIR)/*.cpp) $(COMMON_SOURCES)
+CLIENT_SOURCES = $(wildcard $(CLIENT_SRC_DIR)/*.cpp)
+SERVER_SOURCES = $(wildcard $(SERVER_SRC_DIR)/*.cpp)
 
 # Object files
-COMMON_OBJECTS = $(COMMON_SOURCES:$(COMMON_SRC_DIR)/%.cpp=$(COMMON_OBJ_DIR)/%.o)
-CLIENT_OBJECTS = $(CLIENT_SOURCES:$(CLIENT_SRC_DIR)/%.cpp=$(CLIENT_OBJ_DIR)/%.o) $(COMMON_OBJECTS)
-SERVER_OBJECTS = $(SERVER_SOURCES:$(SERVER_SRC_DIR)/%.cpp=$(SERVER_OBJ_DIR)/%.o) $(COMMON_OBJECTS)
+COMMON_OBJECTS = $(patsubst $(COMMON_SRC_DIR)/%.cpp,$(COMMON_OBJ_DIR)/%.o,$(COMMON_SOURCES))
+CLIENT_OBJECTS = $(patsubst $(CLIENT_SRC_DIR)/%.cpp,$(CLIENT_OBJ_DIR)/%.o,$(CLIENT_SOURCES)) $(COMMON_OBJECTS)
+SERVER_OBJECTS = $(patsubst $(SERVER_SRC_DIR)/%.cpp,$(SERVER_OBJ_DIR)/%.o,$(SERVER_SOURCES)) $(COMMON_OBJECTS)
 
 # Default rule to make everything
 all: $(CLIENT_TARGET) $(SERVER_TARGET)
 
 # Rule to make the client executable
 $(CLIENT_TARGET): $(CLIENT_OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $(CLIENT_OBJECTS) $(LDFLAGS)
+	$(CXX) $(CLIENT_OBJECTS) -o $@ $(LDFLAGS)
 
 # Rule to make the server executable
 $(SERVER_TARGET): $(SERVER_OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $(SERVER_OBJECTS) $(LDFLAGS)
+	$(CXX) $(SERVER_OBJECTS) -o $@ $(LDFLAGS)
 
 # Rule to compile client object files
 $(CLIENT_OBJ_DIR)/%.o: $(CLIENT_SRC_DIR)/%.cpp

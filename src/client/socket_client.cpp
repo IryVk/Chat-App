@@ -1,74 +1,96 @@
 #include "client/socket_client.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <cstring>
-#include <iostream>
 
-SocketClient::SocketClient(const std::string &serverIP, int serverPort)
-    : sockfd(-1), serverIP(serverIP), serverPort(serverPort) {}
+using json = nlohmann::json;
 
-SocketClient::~SocketClient() {
-    if (sockfd != -1) {
-        close(sockfd);
-    }
+Client::Client(const std::string& server_ip, int port) : sock(-1), server_ip(server_ip), port(port) {}
+
+Client::~Client() {
+    disconnect();
 }
 
-bool SocketClient::connectToServer() {
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        std::cerr << "Cannot open socket." << std::endl;
+bool Client::connectToServer() {
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1) {
+        std::cerr << "Could not create socket." << std::endl;
         return false;
     }
 
-    struct sockaddr_in serv_addr;
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(serverPort);
+    sockaddr_in server;
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = inet_addr(server_ip.c_str());
+    server.sin_port = htons(port);
 
-    if (inet_pton(AF_INET, serverIP.c_str(), &serv_addr.sin_addr) <= 0) {
-        std::cerr << "Invalid address/ Address not supported." << std::endl;
-        close(sockfd);
-        sockfd = -1;
+    if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
+        std::cerr << "Connect failed." << std::endl;
         return false;
     }
 
-    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        std::cerr << "Connection Failed." << std::endl;
-        close(sockfd);
-        sockfd = -1;
-        return false;
-    }
+    std::cout << "Connected to the server." << std::endl;
     return true;
 }
 
-bool SocketClient::sendMessage(const std::string &message) {
-    if (send(sockfd, message.c_str(), message.length(), 0) < 0) {
-        std::cerr << "Send failed." << std::endl;
-        return false;
+void Client::disconnect() {
+    if (sock != -1) {
+        close(sock);
+        sock = -1;
     }
-    return true;
 }
 
-std::string SocketClient::receiveMessage() {
-    char buffer[1024] = {0};
-    std::string result;
+void Client::receiveMessages() {
+    char buffer[1024];
     while (true) {
-        ssize_t bytesReceived = recv(sockfd, buffer, 1024, 0);
-        if (bytesReceived < 0) {
-            std::cerr << "Error in receiving data." << std::endl;
+        ssize_t len = recv(sock, buffer, sizeof(buffer), 0);
+        if (len > 0) {
+            std::string msg(buffer, len);
+            json j = json::parse(msg);
+            handleJsonMessage(j.dump());
+        } else if (len == 0) {
+            std::cout << "Server closed connection." << std::endl;
             break;
-        }
-        if (bytesReceived == 0) {  // connection closed
-            break;
-        }
-        result.append(buffer, bytesReceived);
-        if (bytesReceived < 1024) {  // likely end of message
+        } else {
+            std::cerr << "Failed to receive data." << std::endl;
             break;
         }
     }
-    return result;
 }
 
+void Client::sendMessage(const json& message) {
+    std::string msg = message.dump();
+    if (send(sock, msg.c_str(), msg.size(), 0) < 0) {
+        std::cerr << "Send failed." << std::endl;
+    }
+}
+
+// define color codes as constants
+const std::string RESET = "\033[0m";
+const std::string RED = "\033[31m";
+const std::string GREEN = "\033[32m";
+const std::string YELLOW = "\033[33m";
+const std::string BLUE = "\033[34m";
+const std::string MAGENTA = "\033[35m";
+const std::string CYAN = "\033[36m";
+const std::string WHITE = "\033[37m";
+
+void Client::printColoredMessage(const std::string& message, const std::string& color) {
+    std::cout << color << message << RESET << std::endl;
+}
+
+void Client::handleJsonMessage(const std::string& jsonStr) {
+    auto j = json::parse(jsonStr);
+    std::string type = j.value("type", "info"); // default to "info" if no type is specified
+    std::string message = j.value("message", "");
+
+    if (type == "error") {
+        printColoredMessage(message, RED);
+    } else if (type == "warning") {
+        printColoredMessage(message, YELLOW);
+    } else if (type == "info") {
+        printColoredMessage(message, BLUE);
+    } else if (type == "success") {
+        printColoredMessage(message, GREEN);
+    } else if (type == "text") {
+        printColoredMessage("USER: " + message, MAGENTA); 
+    } else {
+        printColoredMessage(message, WHITE);
+    }
+}

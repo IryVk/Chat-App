@@ -1,9 +1,31 @@
 #include <client/socket_client.h>
 
 int main() {
-    SocketClient* client = new SocketClient("127.0.0.1", 12346);
-    client->connectToServer();
-    std::string testMessage = "Hello, Server!";
-    client->sendMessage(testMessage);
+    // ip and port of the server
+    std::cout << "Enter the server IP address: ";
+    std::string ip;
+    std::cin >> ip;
+    std::cout << "Enter the server port: ";
+    int port;
+    std::cin >> port;
+    Client client(ip, port);
+    if (!client.connectToServer()) {
+        return 1; // connection failed
+    }
+
+    std::thread recvThread(&Client::receiveMessages, &client);
+
+    std::cin.ignore(); // ignore the newline character
+
+    std::string line;
+    while (getline(std::cin, line)) {
+        if (line == "exit") {
+            break;
+        }
+        client.sendMessage(nlohmann::json{{"type", "text"},{"message", line}});
+    }
+
+    recvThread.join();
+    client.disconnect();
     return 0;
 }

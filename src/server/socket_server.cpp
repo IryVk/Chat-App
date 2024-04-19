@@ -59,12 +59,12 @@ void Server::waitForClients(int& clientSocket) {
     std::cout << "Client connected from " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
 
     // send a welcome message to the client
-    notifyClient(clientSocket, json{{"message", "Welcome!"}}.dump());
+    notifyClient(clientSocket, json{{"type", "success"},{"message", "Welcome!"}}.dump());
 }
 
 void Server::handlePair(int clientSocket1, int clientSocket2) {
-    notifyClient(clientSocket1, json{{"message", "You are now chatting with User 2"}}.dump());
-    notifyClient(clientSocket2, json{{"message", "You are now chatting with User 1"}}.dump());
+    notifyClient(clientSocket1, json{{"type", "info"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
+    notifyClient(clientSocket2, json{{"type", "info"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
     fd_set readfds;
     int max_sd;
     bool disconnected = false;
@@ -96,7 +96,7 @@ void Server::processClientMessage(int sourceSock, int targetSock, fd_set &readfd
         char buffer[1024] = {0};
         ssize_t bytesRead = read(sourceSock, buffer, sizeof(buffer) - 1);
         if (bytesRead == 0) {
-            notifyClient(targetSock, json{{"status", "error"}, {"message", "The other user disconnected."}}.dump());
+            notifyClient(targetSock, json{{"type", "error"},{"status", "error"}, {"message", "The other user disconnected."}}.dump());
             close(sourceSock);
             close(targetSock);
             return;
@@ -105,8 +105,8 @@ void Server::processClientMessage(int sourceSock, int targetSock, fd_set &readfd
                 json msg = json::parse(std::string(buffer, bytesRead));
                 send(targetSock, msg.dump().c_str(), msg.dump().size(), 0);
             } catch (const json::parse_error& e) {
-                std::cerr << "Failed to parse JSON message: " << e.what() << std::endl;
-                notifyClient(sourceSock, json{{"status", "error"}, {"message", "Invalid JSON format."}}.dump());
+                // std::cerr << "Failed to parse JSON message: " << e.what() << std::endl;
+                notifyClient(sourceSock, json{{"type", "error"},{"status", "error"}, {"message", "Invalid JSON format."}}.dump());
             }
         }
     }
