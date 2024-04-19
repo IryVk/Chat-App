@@ -1,13 +1,8 @@
 #include "common/aes_ecb.h"
-#include <cryptopp/aes.h>
-#include <cryptopp/filters.h>
-#include <cryptopp/modes.h>
-#include <cryptopp/hex.h>
 
-using namespace CryptoPP;
 
 // constructor
-AESECB::AESECB(const std::string& key) : key(key) {}
+AESECB::AESECB(std::string& key) : key(key) {}
 
 // encrypt plaintext using AES in ECB mode
 std::string AESECB::Encrypt(const std::string& plaintext) {
@@ -45,6 +40,23 @@ std::string AESECB::Decrypt(const std::string& ciphertext) {
     );
 
     return decryptedText;
+}
+
+std::string AESECB::keyFromSharedSecret(const SecByteBlock& sharedSecret) {
+    // Use SHA256 to hash the shared secret to get a 32-byte key
+    std::string key;
+    SHA256 sha256;
+
+    // Since sharedSecret is a SecByteBlock, we can directly use it in StringSource
+    StringSource ss(sharedSecret.data(), sharedSecret.size(), true,
+        new HashFilter(sha256,
+            new StringSink(key)
+        )
+    );
+    
+    this->key = key;
+
+    return key;
 }
 
 // utility function to convert string to hex

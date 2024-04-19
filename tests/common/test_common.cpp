@@ -2,6 +2,8 @@
 #include "common/dh_key.h"
 #include <cryptopp/nbtheory.h>
 #include <gtest/gtest.h>
+#include <cryptopp/secblock.h>
+#include <cryptopp/osrng.h>
 
 // ==================== AESECB Tests ====================
 // fixture class for AESEncryption tests
@@ -106,4 +108,42 @@ TEST_F(DHKeyExchangeTest, SymmetricKeyAgreement) {
     } catch (const std::exception& e) {
         FAIL() << "Exception during symmetric key agreement: " << e.what();
     }
+}
+// ==================== Shared Secret Tests ====================
+class AESKeyFromSecretTest : public ::testing::Test {
+protected:
+    CryptoPP::AutoSeededRandomPool rng;
+    CryptoPP::SecByteBlock sharedSecret;
+
+    // set up a known shared secret for testing
+    void SetUp() override {
+        sharedSecret = CryptoPP::SecByteBlock(32); // assuming a 32-byte shared secret
+        rng.GenerateBlock(sharedSecret, sharedSecret.size());
+    }
+};
+
+TEST_F(AESKeyFromSecretTest, GeneratesCorrectKeyLength) {
+    AESECB aes;
+    std::string key = aes.keyFromSharedSecret(sharedSecret);
+    // check that the key is exactly 32 bytes long, which is the output size of SHA256
+    EXPECT_EQ(key.size(), 32);
+}
+
+TEST_F(AESKeyFromSecretTest, ConsistentOutputForSameInput) {
+    AESECB aes;
+    std::string key1 = aes.keyFromSharedSecret(sharedSecret);
+    std::string key2 = aes.keyFromSharedSecret(sharedSecret);
+    // check that the function gives the same output for the same input
+    EXPECT_EQ(key1, key2);
+}
+
+TEST_F(AESKeyFromSecretTest, DifferentOutputForDifferentInput) {
+    AESECB aes;
+    CryptoPP::SecByteBlock differentSecret(32);
+    rng.GenerateBlock(differentSecret, differentSecret.size());
+
+    std::string key1 = aes.keyFromSharedSecret(sharedSecret);
+    std::string key2 = aes.keyFromSharedSecret(differentSecret);
+    // check that different inputs produce different outputs
+    EXPECT_NE(key1, key2);
 }

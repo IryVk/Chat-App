@@ -1,4 +1,5 @@
 #include <client/socket_client.h>
+#include <common/aes_ecb.h>
 
 int main() {
     // ip and port of the server
@@ -22,7 +23,7 @@ int main() {
         if (line == "exit") {
             break;
         }
-        client.sendMessage(nlohmann::json{{"type", "text"},{"message", line}});
+        client.sendMessage(nlohmann::json{{"type", "text"},{"message", AESECB::toHex(client.aes.Encrypt(line))}});
     }
 
     recvThread.join();

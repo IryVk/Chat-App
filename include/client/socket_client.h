@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <thread>
+#include "common/aes_ecb.h"
 
 class Client {
 public:
@@ -19,13 +20,21 @@ public:
     void disconnect();
     void receiveMessages();
     void sendMessage(const nlohmann::json& message);
+    
 
 private:
     int sock;
     std::string server_ip;
     int port;
+public:
+    AESECB aes;
+private:
+    CryptoPP::SecByteBlock priv_key;
     void printColoredMessage(const std::string& message, const std::string& color);
     void handleJsonMessage(const std::string& jsonStr);
+    void keyExchangeInit();
+    void keyExchangeResponse(const std::string& jsonStr);
+    void setKey(const std::string& jsonStr);
 };
 
 #endif // SOCKET_CLIENT_H

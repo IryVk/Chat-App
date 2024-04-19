@@ -1,4 +1,5 @@
 #include "server/socket_server.h"
+#include <common/aes_ecb.h>
 
 using json = nlohmann::json;
 
@@ -63,7 +64,7 @@ void Server::waitForClients(int& clientSocket) {
 }
 
 void Server::handlePair(int clientSocket1, int clientSocket2) {
-    notifyClient(clientSocket1, json{{"type", "info"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
+    notifyClient(clientSocket1, json{{"type", "connected"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
     notifyClient(clientSocket2, json{{"type", "info"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
     fd_set readfds;
     int max_sd;
