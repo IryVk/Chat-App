@@ -154,7 +154,7 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     } else if (type == "connected") {
         this->keyExchangeInit();
     } else if (type == "key_exchange_response") {
-        printColoredMessage(jsonStr, CYAN, outputWin);
+        printColoredMessage("DHKEYEXCHANGE: " + jsonStr, CYAN, outputWin);
         this->setKey(jsonStr);
     } 
 }
