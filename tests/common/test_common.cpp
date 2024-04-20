@@ -1,9 +1,12 @@
-#include "common/aes_ecb.h"
-#include "common/dh_key.h"
+#include <common/aes_ecb.h>
+#include <common/dh_key.h>
 #include <cryptopp/nbtheory.h>
 #include <gtest/gtest.h>
 #include <cryptopp/secblock.h>
 #include <cryptopp/osrng.h>
+#include <thread>
+#include <chrono>
+#include <common/thread_list.h>
 
 // ==================== AESECB Tests ====================
 // fixture class for AESEncryption tests
@@ -11,7 +14,7 @@ class AESEncryptionTest : public ::testing::Test {
 protected:
 };
 
-// test encryption and decryption for a basic string
+// Test Case: test encryption and decryption for a basic string
 TEST_F(AESEncryptionTest, EncryptDecryptBasicString) {
     std::string key = "16bytesecretkey!"; 
     AESECB aes(key);
@@ -23,7 +26,7 @@ TEST_F(AESEncryptionTest, EncryptDecryptBasicString) {
     EXPECT_EQ(plaintext, decryptedText);
 }
 
-// test encryption and decryption for an empty string
+// Test Case: test encryption and decryption for an empty string
 TEST_F(AESEncryptionTest, EncryptDecryptEmptyString) {
     std::string key = "16bytesecretkey!";
     AESECB aes(key);
@@ -35,7 +38,7 @@ TEST_F(AESEncryptionTest, EncryptDecryptEmptyString) {
     EXPECT_EQ(plaintext, decryptedText);
 }
 
-// test encryption and decryption for a string that is exactly one block size
+// Test Case: test encryption and decryption for a string that is exactly one block size
 TEST_F(AESEncryptionTest, EncryptDecryptOneBlockSize) {
     std::string key = "16bytesecretkey!";
     AESECB aes(key);
@@ -48,7 +51,7 @@ TEST_F(AESEncryptionTest, EncryptDecryptOneBlockSize) {
     EXPECT_EQ(plaintext, decryptedText);
 }
 
-// test encryption and decryption for a string that is 1 byte less than a block size
+// Test Case: test encryption and decryption for a string that is 1 byte less than a block size
 TEST_F(AESEncryptionTest, EncryptDecryptOneByteLessThanBlockSize) {
     std::string key = "16bytesecretkey!";
     AESECB aes(key);
@@ -62,7 +65,7 @@ TEST_F(AESEncryptionTest, EncryptDecryptOneByteLessThanBlockSize) {
 }
 
 // ==================== DHKeyExchange Tests ====================
-// test fixture for DHKeyExchange
+// Test Case: test fixture for DHKeyExchange
 class DHKeyExchangeTest : public ::testing::Test {
 protected:
     static void SetUpTestCase() {
@@ -80,13 +83,13 @@ protected:
     CryptoPP::SecByteBlock privKeyB, pubKeyB;
 };
 
-// test for parameter initialization
+// Test Case: test for parameter initialization
 TEST_F(DHKeyExchangeTest, DomainParametersAreValid) {
     ASSERT_NE(DHKeyExchange::dhA.GetGroupParameters().GetModulus(), 0);
     ASSERT_NE(DHKeyExchange::dhA.GetGroupParameters().GetGenerator(), 0);
 }
 
-// test for asymmetric key generation
+// Test Case: test for asymmetric key generation
 TEST_F(DHKeyExchangeTest, AsymmetricKeyGeneration) {
     ASSERT_GT(privKeyA.size(), 0);
     ASSERT_GT(pubKeyA.size(), 0);
@@ -94,7 +97,7 @@ TEST_F(DHKeyExchangeTest, AsymmetricKeyGeneration) {
     ASSERT_GT(pubKeyB.size(), 0);
 }
 
-// test for symmetric key agreement
+// Test Case: test for symmetric key agreement
 TEST_F(DHKeyExchangeTest, SymmetricKeyAgreement) {
     try {
         CryptoPP::SecByteBlock sharedA = CryptoPP::SecByteBlock(DHKeyExchange::dhA.AgreedValueLength());
@@ -122,6 +125,7 @@ protected:
     }
 };
 
+// Test Case: test for key generation from shared secret
 TEST_F(AESKeyFromSecretTest, GeneratesCorrectKeyLength) {
     AESECB aes;
     std::string key = aes.keyFromSharedSecret(sharedSecret);
@@ -129,6 +133,7 @@ TEST_F(AESKeyFromSecretTest, GeneratesCorrectKeyLength) {
     EXPECT_EQ(key.size(), 32);
 }
 
+// Test Case: test for consistent output for the same input
 TEST_F(AESKeyFromSecretTest, ConsistentOutputForSameInput) {
     AESECB aes;
     std::string key1 = aes.keyFromSharedSecret(sharedSecret);
@@ -137,6 +142,7 @@ TEST_F(AESKeyFromSecretTest, ConsistentOutputForSameInput) {
     EXPECT_EQ(key1, key2);
 }
 
+// Test Case: test for different output for different input
 TEST_F(AESKeyFromSecretTest, DifferentOutputForDifferentInput) {
     AESECB aes;
     CryptoPP::SecByteBlock differentSecret(32);
@@ -146,4 +152,38 @@ TEST_F(AESKeyFromSecretTest, DifferentOutputForDifferentInput) {
     std::string key2 = aes.keyFromSharedSecret(differentSecret);
     // check that different inputs produce different outputs
     EXPECT_NE(key1, key2);
+}
+
+// ==================== Thread Linked List Tests ====================
+
+class ThreadListTests : public ::testing::Test {
+protected:
+    ThreadList threadList;
+
+    void TearDown() override {
+        threadList.clear(); 
+    }
+};
+
+// Test Case: test that the list is initially empty
+TEST_F(ThreadListTests, InitiallyEmpty) {
+    EXPECT_TRUE(threadList.isEmpty());
+}
+
+// Test Case: test adding a single thread
+TEST_F(ThreadListTests, AddSingleThread) {
+    threadList.addThread(std::thread([] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10)); // simulate work
+    }));
+    EXPECT_FALSE(threadList.isEmpty());
+}
+
+
+// Test Case: test adding multiple threads
+TEST_F(ThreadListTests, ClearList) {
+    threadList.addThread(std::thread([] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }));
+    threadList.clear();
+    EXPECT_TRUE(threadList.isEmpty());
 }

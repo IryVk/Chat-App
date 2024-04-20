@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -Wall -std=c++17 -Wno-deprecated-declarations -I../../include -I/usr/include/crypto++ -pthread
 
 # Linker flags
-LDFLAGS = -lcrypto -lcryptopp -lgtest -lgtest_main -pthread -L../../lib
+LDFLAGS = -lcrypto -lcryptopp -lgtest -lgtest_main -pthread -L../../lib -lncurses
 
 # Google Test include directory
 GTEST_INCLUDE = -I../../lib/googletest/include

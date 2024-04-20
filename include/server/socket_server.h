@@ -22,7 +22,9 @@ public:
     
 private:
     int serverSocket; // server socket
+public:
     std::atomic<bool> isRunning; // flag to indicate if the server is running (atomic for thread safety)
+private:
     ThreadList clientThreads;  // stores threads for client pairs
 
     void acceptClients(); // accept clients

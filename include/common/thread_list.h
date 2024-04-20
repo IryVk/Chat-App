@@ -20,6 +20,7 @@ public:
     void addThread(std::thread newThread); // add a new thread to the list
     void joinAll(); // join all threads in the list
     void clear(); // clear all nodes from the list (automatically joins threads)
+    bool isEmpty() const; // check if the list is empty
 
 private:
     struct Node {

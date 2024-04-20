@@ -8,7 +8,7 @@ ThreadList::ThreadList() : head(nullptr) {}
 
 // threadList destructor
 ThreadList::~ThreadList() {
-    joinAll();  // make sure all threads are joined before destroying the list
+    clear();  // make sure all threads are joined before destroying the list
 }
 
 // add a new thread to the list
@@ -39,4 +39,9 @@ void ThreadList::clear() {
         }
         head = std::move(head->next);
     }
+}
+
+// check if the list is empty
+bool ThreadList::isEmpty() const {
+    return head == nullptr;
 }
