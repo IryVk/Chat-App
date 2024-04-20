@@ -8,11 +8,16 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/osrng.h>
 #include <cassert>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <chrono>
+#include <iostream>
+#include <unistd.h>
 
 
 using json = nlohmann::json;
 
-Client::Client(const std::string& server_ip, int port) : sock(-1), server_ip(server_ip), port(port), aes(), priv_key() {}
+Client::Client(std::string& server_ip, int port) : sock(-1), server_ip(server_ip), port(port), aes(), priv_key() {}
 
 Client::~Client() {
     disconnect();
@@ -48,17 +53,34 @@ void Client::disconnect() {
 
 void Client::receiveMessages() {
     char buffer[1024];
-    while (true) {
+
+    // setting a timeout period for recv
+    struct timeval tv;
+    tv.tv_sec = 1;  // timeout after 1 second
+    tv.tv_usec = 0;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+
+    while (this->status) {
         ssize_t len = recv(sock, buffer, sizeof(buffer), 0);
         if (len > 0) {
             std::string msg(buffer, len);
-            json j = json::parse(msg);
-            handleJsonMessage(j.dump());
+            try {
+                auto j = json::parse(msg);
+                handleJsonMessage(j.dump());
+            } catch (const json::parse_error& e) {
+                std::cerr << "JSON parsing error at byte " << e.byte << " with message: " << msg << '\n';
+                std::cerr << "Exception message: " << e.what() << '\n';
+                continue;
+            }
         } else if (len == 0) {
-            std::cout << "Server closed connection." << std::endl;
-            break;
-        } else {
-            std::cerr << "Failed to receive data." << std::endl;
+            std::cout << "Server closed connection.\n";
+            this->status = false;
+        } else if (len == -1) {
+            // check if it was just a timeout or a real error
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                continue;
+            }
+            std::cerr << "Failed to receive data: " << strerror(errno) << std::endl;
             break;
         }
     }
@@ -114,6 +136,7 @@ void Client::handleJsonMessage(const std::string& jsonStr) {
     } 
 }
 
+// utility functions
 std::string integerToHexString(const CryptoPP::Integer& num) {
     std::string hex;
     CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(hex));
@@ -129,6 +152,7 @@ std::string byteToHex(const byte* data, size_t size) {
     return output;
 }
 
+// first step of the key exchange
 void Client::keyExchangeInit(){
     DHKeyExchange::createDomainParameters();
     CryptoPP::SecByteBlock privKeyA, pubKeyA;
@@ -144,12 +168,11 @@ void Client::keyExchangeInit(){
     message["p"] = modulusHex;  
     message["g"] = generatorHex;
     
-    
-
     this->sendMessage(message);  
 
 }
 
+// second step of the key exchange
 void Client::keyExchangeResponse(const std::string& jsonStr) {
     auto j = json::parse(jsonStr);
     std::string pubKeyAHex = j["pub_key"];
@@ -186,6 +209,7 @@ void Client::keyExchangeResponse(const std::string& jsonStr) {
     this->sendMessage(message);  
 }
 
+// final step of the key exchange
 void Client::setKey(const std::string& jsonStr){
     auto j = json::parse(jsonStr);
     std::string pubKeyBHex = j["pub_key"];

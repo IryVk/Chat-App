@@ -10,16 +10,19 @@
 #include <unistd.h>
 #include <thread>
 #include "common/aes_ecb.h"
+#include <atomic>
 
 class Client {
 public:
-    Client(const std::string& server_ip, int port);
+    Client(std::string& server_ip, int port);
     ~Client();
 
     bool connectToServer();
     void disconnect();
     void receiveMessages();
     void sendMessage(const nlohmann::json& message);
+    // atomic variable to control the status of the client
+    std::atomic<bool> status{true};;
     
 
 private:

@@ -97,6 +97,8 @@ void Server::processClientMessage(int sourceSock, int targetSock, fd_set &readfd
         char buffer[1024] = {0};
         ssize_t bytesRead = read(sourceSock, buffer, sizeof(buffer) - 1);
         if (bytesRead == 0) {
+            // throttle to fix problem
+            sleep(0.5);
             notifyClient(targetSock, json{{"type", "error"},{"status", "error"}, {"message", "The other user disconnected."}}.dump());
             close(sourceSock);
             close(targetSock);
