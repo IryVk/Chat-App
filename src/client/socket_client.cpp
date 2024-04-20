@@ -145,12 +145,12 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     } else if (type == "success") {
         printColoredMessage("Server: " + message, GREEN, outputWin); // print the success message in green
     } else if (type == "key_exchange") {
-        printColoredMessage(jsonStr, CYAN, outputWin); // print the key exchange message in cyan
+        printColoredMessage("DHKEYINIT: " + jsonStr, CYAN, outputWin); // print the key exchange message in cyan
         this->keyExchangeResponse(jsonStr); // respond to the key exchange
     } else if (type == "connected") {
         this->keyExchangeInit(); // initiate the key exchange
     } else if (type == "key_exchange_response") {
-        printColoredMessage("DHKEYEXCHANGE: " + jsonStr, CYAN, outputWin); // print the key exchange response in cyan
+        printColoredMessage("DHKEYRESPONSE: " + jsonStr, CYAN, outputWin); // print the key exchange response in cyan
         this->setKey(jsonStr); // set the key for encryption (for the initiator)
     } 
 }
