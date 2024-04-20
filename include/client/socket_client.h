@@ -11,6 +11,7 @@
 #include <thread>
 #include "common/aes_ecb.h"
 #include <atomic>
+#include <ncurses.h>
 
 class Client {
 public:
@@ -24,17 +25,13 @@ public:
     // atomic variable to control the status of the client
     std::atomic<bool> status{true};;
     
-
-private:
     int sock;
     std::string server_ip;
     int port;
-public:
     AESECB aes;
-private:
     CryptoPP::SecByteBlock priv_key;
-    void printColoredMessage(const std::string& message, const std::string& color);
-    void handleJsonMessage(const std::string& jsonStr);
+    void printColoredMessage(const std::string& message, const std::string& color, WINDOW* outputWin);
+    void handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin);
     void keyExchangeInit();
     void keyExchangeResponse(const std::string& jsonStr);
     void setKey(const std::string& jsonStr);

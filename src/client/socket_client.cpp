@@ -13,6 +13,8 @@
 #include <chrono>
 #include <iostream>
 #include <unistd.h>
+#include <ncurses.h>
+
 
 
 using json = nlohmann::json;
@@ -40,7 +42,7 @@ bool Client::connectToServer() {
         return false;
     }
 
-    std::cout << "Connected to the server." << std::endl;
+    // std::cout << "Connected to the server." << std::endl;
     return true;
 }
 
@@ -66,7 +68,7 @@ void Client::receiveMessages() {
             std::string msg(buffer, len);
             try {
                 auto j = json::parse(msg);
-                handleJsonMessage(j.dump());
+                //handleJsonMessage(j.dump(), outputWin);
             } catch (const json::parse_error& e) {
                 std::cerr << "JSON parsing error at byte " << e.byte << " with message: " << msg << '\n';
                 std::cerr << "Exception message: " << e.what() << '\n';
@@ -103,35 +105,56 @@ const std::string MAGENTA = "\033[35m";
 const std::string CYAN = "\033[36m";
 const std::string WHITE = "\033[37m";
 
-void Client::printColoredMessage(const std::string& message, const std::string& color) {
-    std::cout << color << message << RESET << std::endl;
+void Client::printColoredMessage(const std::string& message, const std::string& color, WINDOW* outputWin) {
+    int color_pair = 7; // Default to white
+    if (color == RED) {
+        color_pair = 1;
+    } else if (color == GREEN) {
+        color_pair = 2;
+    } else if (color == YELLOW) {
+        color_pair = 3;
+    } else if (color == BLUE) {
+        color_pair = 4;
+    } else if (color == MAGENTA) {
+        color_pair = 5;
+    } else if (color == CYAN) {
+        color_pair = 6;
+    } else if (color == WHITE) {
+        color_pair = 7;
+    }
+
+    wattron(outputWin, COLOR_PAIR(color_pair));  // Turn on the chosen color pair
+    wprintw(outputWin, "%s\n", message.c_str());
+    wattroff(outputWin, COLOR_PAIR(color_pair)); // Turn off the color pair
+    wrefresh(outputWin);
 }
 
-void Client::handleJsonMessage(const std::string& jsonStr) {
+void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     auto j = json::parse(jsonStr);
     std::string type = j.value("type", "info"); // default to "info" if no type is specified
     std::string message = j.value("message", "");
     if (type == "text") {
+        // std::cout << "Encrypted message: " << message << std::endl;
         message = this->aes.Decrypt(AESECB::fromHex(message));
     }
-
     if (type == "error") {
-        printColoredMessage(message, RED);
+        printColoredMessage("Server: " + message, RED, outputWin);
     } else if (type == "warning") {
-        printColoredMessage(message, YELLOW);
+        printColoredMessage(message, YELLOW, outputWin);
     } else if (type == "info") {
-        printColoredMessage(message, BLUE);
+        printColoredMessage("INFO: " + message, BLUE, outputWin);
     } else if (type == "success") {
-        printColoredMessage(message, GREEN);
+        printColoredMessage("Server: " + message, GREEN, outputWin);
     } else if (type == "text") {
-        printColoredMessage("USER: " + message, MAGENTA); 
+        // std::cout << "Decrypted message: " << message << std::endl;
+        printColoredMessage("USER: " + message, MAGENTA, outputWin); 
     } else if (type == "key_exchange") {
-        printColoredMessage(jsonStr, CYAN);
+        printColoredMessage(jsonStr, CYAN, outputWin);
         this->keyExchangeResponse(jsonStr);
     } else if (type == "connected") {
         this->keyExchangeInit();
     } else if (type == "key_exchange_response") {
-        printColoredMessage(jsonStr, CYAN);
+        printColoredMessage(jsonStr, CYAN, outputWin);
         this->setKey(jsonStr);
     } 
 }

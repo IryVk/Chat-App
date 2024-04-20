@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -Wall -std=c++17 -Wno-deprecated-declarations -Iinclude -I/usr/include/crypto++ -I/usr/include/openssl
 
 # Linker flags
-LDFLAGS = -lcrypto -lcryptopp -pthread
+LDFLAGS = -lcrypto -lcryptopp -pthread -lncurses
 
 # Executable names
 CLIENT_TARGET = chat-client.exe
