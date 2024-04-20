@@ -106,7 +106,7 @@ const std::string CYAN = "\033[36m";
 const std::string WHITE = "\033[37m";
 
 void Client::printColoredMessage(const std::string& message, const std::string& color, WINDOW* outputWin) {
-    int color_pair = 7; // Default to white
+    int color_pair = 7; // default to white
     if (color == RED) {
         color_pair = 1;
     } else if (color == GREEN) {
@@ -123,9 +123,9 @@ void Client::printColoredMessage(const std::string& message, const std::string& 
         color_pair = 7;
     }
 
-    wattron(outputWin, COLOR_PAIR(color_pair));  // Turn on the chosen color pair
+    wattron(outputWin, COLOR_PAIR(color_pair));  // turn on the chosen color pair
     wprintw(outputWin, "%s\n", message.c_str());
-    wattroff(outputWin, COLOR_PAIR(color_pair)); // Turn off the color pair
+    wattroff(outputWin, COLOR_PAIR(color_pair)); // turn off the color pair
     wrefresh(outputWin);
 }
 

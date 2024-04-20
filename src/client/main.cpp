@@ -20,31 +20,31 @@ int main() {
 
     std::cin.ignore(); // ignore the newline character
 
-    // Initialize ncurses
+    // initialize ncurses
     initscr(); // Start curses mode
-    // Start the color functionality
+    // start the color functionality
     start_color();
-    init_pair(1, COLOR_RED, COLOR_BLACK);     // Red
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);   // Green
-    init_pair(3, COLOR_YELLOW, COLOR_BLACK);  // Yellow
-    init_pair(4, COLOR_BLUE, COLOR_BLACK);    // Blue
-    init_pair(5, COLOR_MAGENTA, COLOR_BLACK); // Magenta
-    init_pair(6, COLOR_CYAN, COLOR_BLACK);    // Cyan
-    init_pair(7, COLOR_WHITE, COLOR_BLACK);   // White
-    cbreak(); // Line buffering disabled
-    echo(); // Echo input
+    init_pair(1, COLOR_RED, COLOR_BLACK);     
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);   
+    init_pair(3, COLOR_YELLOW, COLOR_BLACK);  
+    init_pair(4, COLOR_BLUE, COLOR_BLACK);    
+    init_pair(5, COLOR_MAGENTA, COLOR_BLACK); 
+    init_pair(6, COLOR_CYAN, COLOR_BLACK);    
+    init_pair(7, COLOR_WHITE, COLOR_BLACK);   
+    cbreak(); // line buffering disabled
+    echo(); // echo input
 
-    // Get the size of the window
+    // get the size of the window
     int maxY, maxX;
     getmaxyx(stdscr, maxY, maxX);
 
-    // Create a window for input and another for output
-    WINDOW* inputWin = newwin(1, maxX, maxY - 1, 0); // Last line for input
-    WINDOW* outputWin = newwin(maxY - 1, maxX, 0, 0); // Rest for output
+    // create a window for input and another for output
+    WINDOW* inputWin = newwin(1, maxX, maxY - 1, 0); // last line for input
+    WINDOW* outputWin = newwin(maxY - 1, maxX, 0, 0); // rest for output
 
-    scrollok(outputWin, TRUE); // Allow the output window to scroll
+    scrollok(outputWin, TRUE); // allow the output window to scroll
 
-    // Initial user instructions
+    // initial user instructions
     mvwprintw(inputWin, 0, 0, "You: ");
     wrefresh(inputWin);
     
@@ -53,7 +53,7 @@ int main() {
             return 1; // connection failed
         }
 
-         // Start the receive thread
+         // start the receive thread
     std::thread recvThread([&]() {
         char buffer[1024];
 
@@ -90,7 +90,7 @@ int main() {
         }
     });
 
-        // Main loop for user input
+        // main loop for user input
         char str[1024];
         while (true) {
             if (!client.status) {
@@ -118,8 +118,8 @@ int main() {
             } catch (const CryptoPP::InvalidKeyLength& e) {
                 std::cerr << "Invalid key length: " << e.what() << std::endl;
             }
-            wmove(inputWin, 0, 5); // Move cursor back to after "You: "
-            wclrtoeol(inputWin); // Clear the line after "You: "
+            wmove(inputWin, 0, 5); // move cursor back to after "You: "
+            wclrtoeol(inputWin); // clear the line after "You: "
             wrefresh(inputWin);
             wprintw(outputWin, "You: %s\n", str);
             wrefresh(outputWin);
@@ -127,7 +127,7 @@ int main() {
 
         recvThread.join();
         client.disconnect();
-        endwin(); // End curses mode
+        endwin(); // end curses mode
     }
 
     return 0;
