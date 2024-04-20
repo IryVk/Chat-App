@@ -66,10 +66,10 @@ void Server::waitForClients(int& clientSocket) {
 void Server::handlePair(int clientSocket1, int clientSocket2) {
     notifyClient(clientSocket1, json{{"type", "connected"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
     // throttle to fix problem
-    sleep(0.2);
+    sleep(0.5);
     notifyClient(clientSocket2, json{{"type", "info"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
     // throttle to fix problem
-    sleep(0.2);
+    sleep(0.5);
     fd_set readfds;
     int max_sd;
     bool disconnected = false;
