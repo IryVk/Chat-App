@@ -5,30 +5,30 @@
 #include <thread>
 #include <vector>
 #include <atomic>
-#include <mutex>
 #include <condition_variable>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
-#include "nlohmann/json.hpp" 
+#include <nlohmann/json.hpp>
+#include <common/aes_ecb.h>
 
 class Server {
 public:
-    Server(int port);
-    ~Server();
-    void run();
-
+    Server(int port); // constructor
+    ~Server(); // destructor
+    void run(); // start the server
+    
 private:
-    int serverSocket;
-    std::atomic<bool> isRunning;
+    int serverSocket; // server socket
+    std::atomic<bool> isRunning; // flag to indicate if the server is running (atomic for thread safety)
     std::vector<std::thread> clientThreads;  // stores threads for client pairs
 
-    void acceptClients();
-    void handlePair(int clientSocket1, int clientSocket2);
-    void waitForClients(int& clientSocket);
-    void notifyClient(int clientSocket, const std::string &message);
-    void processClientMessage(int sourceSock, int targetSock, fd_set &readfds);
+    void acceptClients(); // accept clients
+    void handlePair(int clientSocket1, int clientSocket2); // handle client pair
+    void waitForClients(int& clientSocket); // wait for clients to connect
+    void notifyClient(int clientSocket, const std::string &message); // notify clients (send json)
+    void processClientMessage(int sourceSock, int targetSock, fd_set &readfds); // process client message (make sure message is json)
 };
 
 #endif // SOCKET_SERVER_H

@@ -42,20 +42,18 @@ std::string AESECB::Decrypt(const std::string& ciphertext) {
     return decryptedText;
 }
 
+// generate key from DH shared secret
 std::string AESECB::keyFromSharedSecret(const SecByteBlock& sharedSecret) {
-    // Use SHA256 to hash the shared secret to get a 32-byte key
+    // use SHA256 to hash the shared secret to get a 32-byte key
     std::string key;
     SHA256 sha256;
-
-    // Since sharedSecret is a SecByteBlock, we can directly use it in StringSource
+    // since sharedSecret is a SecByteBlock, we can directly use it in StringSource
     StringSource ss(sharedSecret.data(), sharedSecret.size(), true,
         new HashFilter(sha256,
             new StringSink(key)
         )
     );
-    
     this->key = key;
-
     return key;
 }
 

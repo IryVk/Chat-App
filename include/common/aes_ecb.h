@@ -25,13 +25,15 @@ public:
 
     // utility to cast to hex
     static std::string toHex(const std::string& input);
+
     // utility to cast from hex
     static std::string fromHex(const std::string& input);
+
+    // generate key from DH shared secret
     std::string keyFromSharedSecret(const SecByteBlock& sharedSecret);
 
 private:
     std::string key;
-    
 };
 
 #endif // AESECB_H

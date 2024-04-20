@@ -1,6 +1,4 @@
 #include "common/dh_key.h"
-#include <iostream>
-#include <cryptopp/nbtheory.h>
 
 CryptoPP::AutoSeededRandomPool DHKeyExchange::rnd;
 CryptoPP::DH DHKeyExchange::dhA;
