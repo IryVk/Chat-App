@@ -12,6 +12,7 @@
 #include <cstring>
 #include <nlohmann/json.hpp>
 #include <common/aes_ecb.h>
+#include <common/thread_list.h>
 
 class Server {
 public:
@@ -22,7 +23,7 @@ public:
 private:
     int serverSocket; // server socket
     std::atomic<bool> isRunning; // flag to indicate if the server is running (atomic for thread safety)
-    std::vector<std::thread> clientThreads;  // stores threads for client pairs
+    ThreadList clientThreads;  // stores threads for client pairs
 
     void acceptClients(); // accept clients
     void handlePair(int clientSocket1, int clientSocket2); // handle client pair

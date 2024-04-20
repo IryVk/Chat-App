@@ -37,11 +37,7 @@ Server::~Server() {
     // stop the server
     isRunning = false;
     // close all threads
-    for (auto& thread : clientThreads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
+    clientThreads.clear();
     close(serverSocket);
 }
 
@@ -53,8 +49,9 @@ void Server::run() {
         // wait for clients to connect
         waitForClients(clientSocket1);
         waitForClients(clientSocket2);
-        // create a thread to handle the client pair and store it in the vector
-        clientThreads.emplace_back(&Server::handlePair, this, clientSocket1, clientSocket2);
+        // create a thread to handle the client pair and store it in the linked list
+        std::thread newThread(&Server::handlePair, this, clientSocket1, clientSocket2);
+        clientThreads.addThread(std::move(newThread));
     }
 }
 

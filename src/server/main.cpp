@@ -8,6 +8,8 @@ int main() {
     std::cin >> port;
     // start the server
     Server myServer(port);
+    std::cout << "Server started on port " << port << std::endl;
+    std::cout << "Press Ctrl+C to stop the server." << std::endl;
     myServer.run();
     return 0;
 }
