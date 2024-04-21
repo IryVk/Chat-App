@@ -1,9 +1,10 @@
-#include "client/socket_client.h"
+#include <client/socket_client.h>
+#include <server/socket_server.h>
 
 using json = nlohmann::json;
 
 // constructor
-Client::Client(std::string& server_ip, int port) : sock(-1), server_ip(server_ip), port(port), aes(), priv_key() {}
+Client::Client(std::string& server_ip, int port) : sock(-1), server_ip(server_ip), port(port), aes(), priv_key(), rsa() {}
 
 // destructor
 Client::~Client() {
@@ -125,6 +126,11 @@ void Client::printColoredMessage(const std::string& message, const std::string& 
     wrefresh(outputWin);
 }
 
+//print colored message (standard output)
+void Client::printColoredMessage(const std::string& message, const std::string& color) {
+    std::cout << color << message << RESET << std::endl;
+}
+
 // handle json message
 void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     // parse the json message
@@ -152,7 +158,19 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     } else if (type == "key_exchange_response") {
         printColoredMessage("DHKEYRESPONSE: " + jsonStr, CYAN, outputWin); // print the key exchange response in cyan
         this->setKey(jsonStr); // set the key for encryption (for the initiator)
-    } 
+    } else if (type == "public_key") {
+        // handle public key
+        CryptoPP::RSA::PublicKey publicKey;
+        std::string pub = jsonStr;
+        // std::cout << "Received public key: " << pub << std::endl;
+        if (RSAWrapper::receivePublicKey(pub, publicKey)) {
+            this->rsa.publicKeyB = publicKey;
+        }
+        std::string response = RSAWrapper::sendPublicKey(this->rsa.getPublicKey());
+        sendMessage(json::parse(response));
+    } else {
+        printColoredMessage("Unknown message type: " + type, RED, outputWin); // print the unknown message type in red
+    }
 }
 
 // utility functions

@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <common/thread_list.h>
+#include <common/rsa_wrapper.h>
 
 // ==================== AESECB Tests ====================
 // fixture class for AESEncryption tests
@@ -186,4 +187,56 @@ TEST_F(ThreadListTests, ClearList) {
     }));
     threadList.clear();
     EXPECT_TRUE(threadList.isEmpty());
+}
+
+// ==================== RSAWrapper Tests ====================
+// test fixture class for RSAWrapper tests
+class RSAWrapperTests : public ::testing::Test {
+protected:
+    RSAWrapper rsaWrapper; // RSAWrapper instance for testing
+
+    // test data
+    std::string plainText = "Hello, world! This is a test string for RSA encryption.";
+};
+
+
+// Test Case: test encryption and decryption with its own keys
+TEST_F(RSAWrapperTests, EncryptDecrypt) {
+    std::string encryptedText = rsaWrapper.encrypt(plainText, rsaWrapper.getPublicKey());
+    std::string decryptedText = rsaWrapper.decrypt(encryptedText);
+    ASSERT_EQ(plainText, decryptedText);
+}
+
+// Test Case: test encryption with one RSAWrapper's public key and decryption with another's private key
+TEST_F(RSAWrapperTests, PublicKeyEncryption) {
+    // generating another pair of keys for encryption
+    RSAWrapper anotherRsaWrapper;
+    std::string encryptedText = rsaWrapper.encrypt(plainText, anotherRsaWrapper.getPublicKey());
+    ASSERT_NE(plainText, encryptedText); // The ciphertext should not be the same as plaintext
+
+    // decrypt using the second RSAWrapper's private key
+    std::string decryptedText = anotherRsaWrapper.decrypt(encryptedText);
+    ASSERT_EQ(plainText, decryptedText);
+}
+
+// Test Case: test serialization and deserialization of RSA keys
+TEST(RSASerialization, SerializeAndDeserialize) {
+    CryptoPP::AutoSeededRandomPool rng;
+
+    // Generate RSA keys
+    CryptoPP::RSA::PrivateKey privateKey;
+    CryptoPP::RSA::PublicKey publicKey;
+    privateKey.GenerateRandomWithKeySize(rng, 2048);
+    publicKey.AssignFrom(privateKey);
+
+    // Serialize
+    std::string serialized = RSAWrapper::sendPublicKey(publicKey);
+
+    // Deserialize
+    CryptoPP::RSA::PublicKey deserializedKey;
+    ASSERT_TRUE(RSAWrapper::receivePublicKey(serialized, deserializedKey));
+
+    // Check if the deserialized key is correct
+    ASSERT_EQ(publicKey.GetModulus(), deserializedKey.GetModulus());
+    ASSERT_EQ(publicKey.GetPublicExponent(), deserializedKey.GetPublicExponent());
 }

@@ -12,6 +12,7 @@
 #include <common/aes_ecb.h>
 #include <common/dh_key.h>
 #include <unistd.h>
+#include <common/rsa_wrapper.h>
 
 class Client {
 public:
@@ -30,8 +31,10 @@ public:
     int port;
     AESECB aes; // AES object to store the key and perform encryption/decryption
     CryptoPP::SecByteBlock priv_key;
+    RSAWrapper rsa; // RSA wrapper
 
     void printColoredMessage(const std::string& message, const std::string& color, WINDOW* outputWin); // print colored message (output window)
+    void printColoredMessage(const std::string& message, const std::string& color); // print colored message (standard output)
     void handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin); // handle json message
     void keyExchangeInit(); // key exchange initialization
     void keyExchangeResponse(const std::string& jsonStr); // key exchange response

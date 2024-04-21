@@ -3,7 +3,7 @@
 using json = nlohmann::json;
 
 // constructor
-Server::Server(int port) : isRunning(true) {
+Server::Server(int port) : rsa(), isRunning(true) {
     // create a socket
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == -1) { // check if the socket was created successfully
@@ -55,6 +55,16 @@ void Server::run() {
     }
 }
 
+// get the current time in a formatted string
+std::string Server::getFormattedCurrentTime() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::tm* local_time = std::localtime(&now_c);
+    std::stringstream ss;
+    ss << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
+    return ss.str();
+}
+
 // wait for clients to connect
 void Server::waitForClients(int& clientSocket) {
     sockaddr_in clientAddr{};
@@ -66,7 +76,19 @@ void Server::waitForClients(int& clientSocket) {
         return;
     }
     // successfully accepted a client
-    std::cout << "Client connected from " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
+    std::cout << getFormattedCurrentTime() << ": Client connected from " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
+    // share the public key with the client
+    std::string publicKey = RSAWrapper::sendPublicKey(rsa.getPublicKey());
+    notifyClient(clientSocket, publicKey);
+    // wait for the client to send their public key
+    char buffer[1024] = {0};
+    ssize_t len = read(clientSocket, buffer, sizeof(buffer) - 1);
+    if (len == 0) {
+        std::cerr << "Error reading client's public key." << std::endl;
+    }
+    // successfully read the client's public key
+    std::string pub(buffer, len);
+    RSAWrapper::receivePublicKey(pub, rsa.publicKeyB);
 
     // send a welcome message to the client
     notifyClient(clientSocket, json{{"type", "success"},{"message", "Welcome!"}}.dump());
