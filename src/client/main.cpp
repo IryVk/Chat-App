@@ -89,7 +89,8 @@ int main() {
          // start the receive thread 
          //(lambda function to receive messages from the server and send the window object to other functions)
         std::thread recvThread([&]() {
-            char buffer[1024];
+            std::string buffer; // persistent buffer to store incomplete data
+            char tempBuffer[1024];
 
             // setting a timeout period for recv (to avoid blocking indefinitely)
             struct timeval tv;
@@ -101,17 +102,21 @@ int main() {
             while (client.status) {
                 // receive the message into the buffer
                 // ssize_t is a signed integer type used to represent the sizes of objects
-                ssize_t len = recv(client.sock, buffer, sizeof(buffer), 0);
+                ssize_t len = recv(client.sock, tempBuffer, sizeof(buffer), 0);
                 // if the message is not empty, parse it as json
                 if (len > 0) {
-                    std::string msg(buffer, len);
-                    try {
-                        auto j = json::parse(msg);
-                        client.handleJsonMessage(j.dump(), outputWin);
-                    } catch (const json::parse_error& e) {
-                        std::cerr << "JSON parsing error at byte " << e.byte << " with message: " << msg << '\n';
-                        std::cerr << "Exception message: " << e.what() << '\n';
-                        continue;
+                    buffer.append(tempBuffer, len); // append new data to the buffer
+                    size_t pos;
+                    // process all complete messages in the buffer
+                    while ((pos = buffer.find('\n')) != std::string::npos) {
+                        std::string msg = buffer.substr(0, pos);
+                        buffer.erase(0, pos + 1); // remove the processed message from buffer
+                        try {
+                            auto j = json::parse(msg);
+                            client.handleJsonMessage(j.dump(), outputWin);
+                        } catch (const json::parse_error& e) {
+                            std::cerr << "JSON parsing error: " << e.what() << std::endl;
+                        }
                     }
                 } else if (len == 0) { // if the message is empty, the server has closed the connection
                     wprintw(outputWin, "Server closed connection.\n");

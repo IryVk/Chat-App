@@ -48,7 +48,8 @@ void Client::disconnect() {
 
 // receive messages from the server (unused)
 void Client::receiveMessages() {
-    char buffer[1024];
+    std::string buffer; // persistent buffer to store incomplete data
+    char tempBuffer[1024];
 
     // setting a timeout period for recv
     struct timeval tv;
@@ -57,11 +58,24 @@ void Client::receiveMessages() {
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
 
     while (this->status) {
-        ssize_t len = recv(sock, buffer, sizeof(buffer), 0);
+        ssize_t len = recv(sock, tempBuffer, sizeof(tempBuffer), 0);
         if (len > 0) {
-            std::string msg(buffer, len);
+            buffer.append(tempBuffer, len); // append new data to the buffer
+            size_t pos;
+            // process all complete messages in the buffer
+            while ((pos = buffer.find('\n')) != std::string::npos) {
+                std::string msg = buffer.substr(0, pos);
+                buffer.erase(0, pos + 1); // remove the processed message from buffer
+                try {
+                    auto j = json::parse(msg);
+                    //handleJsonMessage(j.dump(), outputWin);
+                } catch (const json::parse_error& e) {
+                    std::cerr << "JSON parsing error: " << e.what() << std::endl;
+                }
+            }
+
             try {
-                auto j = json::parse(msg);
+                //auto j = json::parse(msg);
                 //handleJsonMessage(j.dump(), outputWin);
             } catch (const json::parse_error& e) {
                 this->status = false;

@@ -140,8 +140,6 @@ bool Server::verifyClient(int clientSocket){
 // handle client pair (aka a chat)
 void Server::handlePair(int clientSocket1, int clientSocket2) {
     notifyClient(clientSocket1, json{{"type", "connected"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
-    // throttle to fix problem
-    sleep(0.5);
     // create a thread to handle the chat
     fd_set readfds;
     // set of socket descriptors
@@ -182,7 +180,6 @@ void Server::processClientMessage(int sourceSock, int targetSock, fd_set &readfd
         ssize_t bytesRead = read(sourceSock, buffer, sizeof(buffer) - 1);
         if (bytesRead == 0) { // check if the client disconnected
             // throttle to fix problem
-            sleep(0.5);
             notifyClient(targetSock, json{{"type", "error"},{"status", "error"}, {"message", "The other user disconnected."}}.dump());
             close(sourceSock);
             close(targetSock);
@@ -190,7 +187,7 @@ void Server::processClientMessage(int sourceSock, int targetSock, fd_set &readfd
         } else if (bytesRead > 0) { // check if the message is valid
             try {
                 json msg = json::parse(std::string(buffer, bytesRead));
-                send(targetSock, msg.dump().c_str(), msg.dump().size(), 0);
+                notifyClient(targetSock, msg.dump());
             } catch (const json::parse_error& e) {
                 notifyClient(sourceSock, json{{"type", "error"},{"status", "error"}, {"message", "Invalid JSON format."}}.dump());
             }
@@ -200,7 +197,8 @@ void Server::processClientMessage(int sourceSock, int targetSock, fd_set &readfd
 
 // notify client (json)
 void Server::notifyClient(int clientSocket, const std::string &jsonMessage) {
-    send(clientSocket, jsonMessage.c_str(), jsonMessage.size(), 0);
+    std::string msg = jsonMessage + "\n";
+    send(clientSocket, msg.c_str(), msg.size(), 0);
 }
 
 // creates a new user
