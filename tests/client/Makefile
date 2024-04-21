@@ -37,7 +37,7 @@ CLIENT_OBJECTS := $(filter-out $(CLIENT_MAIN_OBJ), $(CLIENT_OBJECTS))
 SERVER_OBJECTS := $(filter-out $(SERVER_MAIN_OBJ), $(SERVER_OBJECTS))
 
 # Target executable for tests
-TARGET = run_tests
+TARGET = run_client_tests.exe
 
 # Default rule
 all: $(TARGET)

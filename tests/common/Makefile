@@ -32,8 +32,7 @@ SERVER_MAIN_OBJ = $(SERVER_OBJ_DIR)/main.o
 SERVER_OBJECTS := $(filter-out $(SERVER_MAIN_OBJ), $(SERVER_OBJECTS))
 
 # Target executable for tests
-TARGET = run_tests
-
+TARGET = run_common_tests.exe
 # Default rule
 all: $(TARGET)
 
