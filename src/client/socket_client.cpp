@@ -4,7 +4,7 @@
 using json = nlohmann::json;
 
 // constructor
-Client::Client(std::string& server_ip, int port) : sock(-1), server_ip(server_ip), port(port), aes(), priv_key(), rsa() {}
+Client::Client(std::string& server_ip, int port, std::string username, std::string password, int type) : sock(-1), server_ip(server_ip), port(port), aes(), priv_key(), rsa(), username(username), password(password), authType(type) {}
 
 // destructor
 Client::~Client() {
@@ -64,9 +64,7 @@ void Client::receiveMessages() {
                 auto j = json::parse(msg);
                 //handleJsonMessage(j.dump(), outputWin);
             } catch (const json::parse_error& e) {
-                std::cerr << "JSON parsing error at byte " << e.byte << " with message: " << msg << '\n';
-                std::cerr << "Exception message: " << e.what() << '\n';
-                continue;
+                this->status = false;
             }
         } else if (len == 0) {
             std::cout << "Server closed connection.\n";
@@ -134,14 +132,22 @@ void Client::printColoredMessage(const std::string& message, const std::string& 
 // handle json message
 void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     // parse the json message
-    auto j = json::parse(jsonStr);
+    json j;
+    try{
+        j = json::parse(jsonStr);
+    } catch (const json::parse_error& e) {
+        std::cerr << "JSON parsing error at byte " << e.byte << " with message: " << jsonStr << '\n';
+        std::cerr << "HERE: " << e.what() << '\n';
+        return;
+    }
     // get the type of the message
     std::string type = j.value("type", "info"); // default to "info" if no type is specified
     // get the message content if available
     std::string message = j.value("message", "");
     if (type == "text") {
         message = this->aes.Decrypt(AESECB::fromHex(message));
-        printColoredMessage("USER: " + message, MAGENTA, outputWin); // print the message in magenta
+        std::string user = this->aes.Decrypt(AESECB::fromHex(j["user"]));
+        printColoredMessage(user + message, MAGENTA, outputWin); // print the message in magenta
     } else if (type == "error") {
         printColoredMessage("Server: " + message, RED, outputWin); // print the error in red
     } else if (type == "warning") {
@@ -151,24 +157,39 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     } else if (type == "success") {
         printColoredMessage("Server: " + message, GREEN, outputWin); // print the success message in green
     } else if (type == "key_exchange") {
-        printColoredMessage("DHKEYINIT: " + jsonStr, CYAN, outputWin); // print the key exchange message in cyan
+        printColoredMessage("dh_key_init: " + jsonStr, CYAN, outputWin); // print the key exchange message in cyan
         this->keyExchangeResponse(jsonStr); // respond to the key exchange
     } else if (type == "connected") {
         this->keyExchangeInit(); // initiate the key exchange
     } else if (type == "key_exchange_response") {
-        printColoredMessage("DHKEYRESPONSE: " + jsonStr, CYAN, outputWin); // print the key exchange response in cyan
+        printColoredMessage("dh_key_response: " + jsonStr, CYAN, outputWin); // print the key exchange response in cyan
         this->setKey(jsonStr); // set the key for encryption (for the initiator)
     } else if (type == "public_key") {
         // handle public key
         CryptoPP::RSA::PublicKey publicKey;
         std::string pub = jsonStr;
-        // std::cout << "Received public key: " << pub << std::endl;
         if (RSAWrapper::receivePublicKey(pub, publicKey)) {
             this->rsa.publicKeyB = publicKey;
         }
         std::string response = RSAWrapper::sendPublicKey(this->rsa.getPublicKey());
+        printColoredMessage("server_public_key: " + pub, CYAN, outputWin); // print the public key in cyan
+        printColoredMessage("client_public_key: " + response, CYAN, outputWin); // print the public key in cyan
         sendMessage(json::parse(response));
-    } else {
+    } else if (type == "prompt"){
+
+        std::string enc_username = rsa.encrypt(username, rsa.publicKeyB);
+        std::string enc_password = rsa.encrypt(password, rsa.publicKeyB);
+        if (authType == 1) {
+            // create user
+            json response = json{{"type", "verify"}, {"username", username}, {"password", password}};
+            sendMessage(response);
+        } else if (authType == 2) {
+            // verify user
+            json response = json{{"type", "create"}, {"username", enc_username}, {"password", enc_password}};
+            sendMessage(response);
+        }
+    }
+    else {
         printColoredMessage("Unknown message type: " + type, RED, outputWin); // print the unknown message type in red
     }
 }

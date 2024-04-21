@@ -33,13 +33,13 @@ public:
 private:
     ThreadList clientThreads;  // stores threads for client pairs
 
-    void acceptClients(); // accept clients
     void handlePair(int clientSocket1, int clientSocket2); // handle client pair
-    void waitForClients(int& clientSocket); // wait for clients to connect
+    bool waitForClients(int& clientSocket); // wait for clients to connect
     void notifyClient(int clientSocket, const std::string &message); // notify clients (send json)
     void processClientMessage(int sourceSock, int targetSock, fd_set &readfds); // process client message (make sure message is json)
+    bool createUser(std::string& user); // create a user
+    bool verifyUser(std::string& user); // verify a user
+    bool verifyClient(int clientSocket); // verify a client
 };
-
-
 
 #endif // SOCKET_SERVER_H

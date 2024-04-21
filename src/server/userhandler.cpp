@@ -10,7 +10,10 @@ bool UserHandler::AddUser(const std::string& username, const std::string& passwo
     if (!file.is_open()) {
         return false;
     }
-
+    // check if the username already exists
+    if (FindUserSaltedHash(username).has_value()) {
+        return false;
+    }
     std::string saltedHash = PasswordHasher::HashPassword(password, PasswordHasher::GenerateRandomSalt(16));
     file << username << " " << saltedHash << std::endl;
     return true;

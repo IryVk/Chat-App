@@ -16,7 +16,7 @@
 
 class Client {
 public:
-    Client(std::string& server_ip, int port); // constructor
+    Client(std::string& server_ip, int port, std::string username, std::string password, int type); // constructor
     ~Client(); // destructor
 
     bool connectToServer(); // connect to the server
@@ -32,6 +32,9 @@ public:
     AESECB aes; // AES object to store the key and perform encryption/decryption
     CryptoPP::SecByteBlock priv_key;
     RSAWrapper rsa; // RSA wrapper
+    std::string username;
+    std::string password;
+    int authType;
 
     void printColoredMessage(const std::string& message, const std::string& color, WINDOW* outputWin); // print colored message (output window)
     void printColoredMessage(const std::string& message, const std::string& color); // print colored message (standard output)

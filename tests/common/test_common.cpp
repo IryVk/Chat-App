@@ -212,7 +212,7 @@ TEST_F(RSAWrapperTests, PublicKeyEncryption) {
     // generating another pair of keys for encryption
     RSAWrapper anotherRsaWrapper;
     std::string encryptedText = rsaWrapper.encrypt(plainText, anotherRsaWrapper.getPublicKey());
-    ASSERT_NE(plainText, encryptedText); // The ciphertext should not be the same as plaintext
+    ASSERT_NE(plainText, encryptedText); // the ciphertext should not be the same as plaintext
 
     // decrypt using the second RSAWrapper's private key
     std::string decryptedText = anotherRsaWrapper.decrypt(encryptedText);
@@ -223,20 +223,20 @@ TEST_F(RSAWrapperTests, PublicKeyEncryption) {
 TEST(RSASerialization, SerializeAndDeserialize) {
     CryptoPP::AutoSeededRandomPool rng;
 
-    // Generate RSA keys
+    // generate RSA keys
     CryptoPP::RSA::PrivateKey privateKey;
     CryptoPP::RSA::PublicKey publicKey;
     privateKey.GenerateRandomWithKeySize(rng, 2048);
     publicKey.AssignFrom(privateKey);
 
-    // Serialize
+    // serialize
     std::string serialized = RSAWrapper::sendPublicKey(publicKey);
 
-    // Deserialize
+    // deserialize
     CryptoPP::RSA::PublicKey deserializedKey;
     ASSERT_TRUE(RSAWrapper::receivePublicKey(serialized, deserializedKey));
 
-    // Check if the deserialized key is correct
+    // check if the deserialized key is correct
     ASSERT_EQ(publicKey.GetModulus(), deserializedKey.GetModulus());
     ASSERT_EQ(publicKey.GetPublicExponent(), deserializedKey.GetPublicExponent());
 }

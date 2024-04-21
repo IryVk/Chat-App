@@ -6,6 +6,10 @@
 #include "common/aes_ecb.h"
 
 using json = nlohmann::json;
+std::string username, password;
+
+void clearCin();
+int getInt(std::string& prompt);
 
 int main() {
     // get ip and port of the server
@@ -15,8 +19,34 @@ int main() {
     std::cout << "Enter the server port: ";
     int port;
     std::cin >> port;
+    // ask the user if they want to log in
+    std::string username, password;
+    int type;
+    while (true) {
+        std::string prompt = "Do you want to log in or create a new account? (1: Log in, 2: Create account): ";
+        int choice = getInt(prompt);
+        if (choice == 1) {
+            // log in
+            std::cout << "Enter your username: ";
+            std::cin >> username;
+            std::cout << "Enter your password: ";
+            std::cin >> password;
+            type = 1;
+            break;
+        } else if (choice == 2) {
+            // create account
+            std::cout << "Enter your username: ";
+            std::cin >> username;
+            std::cout << "Enter your password: ";
+            std::cin >> password;
+            type = 2;
+            break;
+        } else {
+            std::cout << "Invalid choice.\n";
+        }
+    }
     // start the client
-    Client client(ip, port);
+    Client client(ip, port, username, password, type);
 
     std::cin.ignore(); // ignore the newline character
 
@@ -127,7 +157,8 @@ int main() {
                 
             try {
                 std::string encryptedMessage = AESECB::toHex(client.aes.Encrypt(str));
-                client.sendMessage(json{{"type", "text"}, {"message", encryptedMessage}});
+                std::string encryptedUsername = AESECB::toHex(client.aes.Encrypt(client.username));
+                client.sendMessage(json{{"type", "text"}, {"message", encryptedMessage}, {"user", encryptedUsername}});
 
             } catch (const CryptoPP::InvalidKeyLength& e) {
                 // std::cerr << "Invalid key length: " << e.what() << std::endl;
@@ -147,4 +178,28 @@ int main() {
     }
 
     return 0;
+}
+
+// utility function that clears the input buffer
+void clearCin() {
+    // clear the error flag on cin (like if user entered a non-numeric value)
+    std::cin.clear();
+    // ignore everything in the buffer up to and including the next newline
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+// utility function to get an integer from the user
+int getInt(std::string& prompt) {
+    int choice;
+    while (true) {
+        std::cout << prompt;
+        if (std::cin >> choice) {
+            // if we successfully read a number, break out of the loop
+            break;
+        } else {
+            std::cout << "Please enter a valid number.\n";
+            clearCin(); // clear the error state and the input buffer
+        }
+    }
+    return choice;
 }

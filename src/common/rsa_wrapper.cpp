@@ -23,22 +23,33 @@ std::string RSAWrapper::encrypt(const std::string& plainText, const CryptoPP::RS
     CryptoPP::RSAES_OAEP_SHA_Encryptor e(publicKey);
     CryptoPP::StringSource(plainText, true,
         new CryptoPP::PK_EncryptorFilter(rng, e,
-            new CryptoPP::StringSink(cipherText)
+            new CryptoPP::Base64Encoder(
+                new CryptoPP::StringSink(cipherText), false // 'false' means do not append a newline
+            )
         )
     );
     return cipherText;
 }
 
+
 std::string RSAWrapper::decrypt(const std::string& cipherText) {
-    std::string recoveredText;
-    CryptoPP::RSAES_OAEP_SHA_Decryptor d(privateKey);
+    std::string recoveredText, binaryText;
+    // first, decode the Base64 to binary
     CryptoPP::StringSource(cipherText, true,
+        new CryptoPP::Base64Decoder(
+            new CryptoPP::StringSink(binaryText)
+        )
+    );
+    // now, decrypt the binary text
+    CryptoPP::RSAES_OAEP_SHA_Decryptor d(privateKey);
+    CryptoPP::StringSource(binaryText, true,
         new CryptoPP::PK_DecryptorFilter(rng, d,
             new CryptoPP::StringSink(recoveredText)
         )
     );
     return recoveredText;
 }
+
 
 void RSAWrapper::savePublicKey(const std::string& filename) {
     CryptoPP::Base64Encoder publicKeyEncoder;

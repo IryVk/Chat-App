@@ -1,4 +1,5 @@
 #include <server/socket_server.h>
+#include <server/userhandler.h>
 
 using json = nlohmann::json;
 
@@ -47,8 +48,8 @@ void Server::run() {
         // accept clients
         int clientSocket1, clientSocket2;
         // wait for clients to connect
-        waitForClients(clientSocket1);
-        waitForClients(clientSocket2);
+        while (!waitForClients(clientSocket1));
+        while (!waitForClients(clientSocket2));
         // create a thread to handle the client pair and store it in the linked list
         std::thread newThread(&Server::handlePair, this, clientSocket1, clientSocket2);
         clientThreads.addThread(std::move(newThread));
@@ -66,17 +67,28 @@ std::string Server::getFormattedCurrentTime() {
 }
 
 // wait for clients to connect
-void Server::waitForClients(int& clientSocket) {
+bool Server::waitForClients(int& clientSocket) {
     sockaddr_in clientAddr{};
     // accept a client
     socklen_t clientAddrLen = sizeof(clientAddr);
     clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
     if (clientSocket < 0) {
         std::cerr << "Error accepting client." << std::endl;
-        return;
+        return false;
     }
     // successfully accepted a client
     std::cout << getFormattedCurrentTime() << ": Client connected from " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
+    // verify the client
+    if (!verifyClient(clientSocket)) {
+        return false;
+    }
+    // send a welcome message to the client
+    notifyClient(clientSocket, json{{"type", "success"},{"message", "Welcome!"}}.dump());
+    return true;
+}
+
+// verify the client
+bool Server::verifyClient(int clientSocket){
     // share the public key with the client
     std::string publicKey = RSAWrapper::sendPublicKey(rsa.getPublicKey());
     notifyClient(clientSocket, publicKey);
@@ -89,10 +101,41 @@ void Server::waitForClients(int& clientSocket) {
     // successfully read the client's public key
     std::string pub(buffer, len);
     RSAWrapper::receivePublicKey(pub, rsa.publicKeyB);
-
-    // send a welcome message to the client
-    notifyClient(clientSocket, json{{"type", "success"},{"message", "Welcome!"}}.dump());
+    // prompt the client to send their username and password
+    notifyClient(clientSocket, json{{"type", "prompt"}}.dump());
+    // read user response
+    char buffer2[1024] = {0};
+    int len2 = read(clientSocket, buffer2, sizeof(buffer2) - 1);
+    if (len2 == 0) {
+        std::cerr << "Error reading client's credentials." << std::endl;
+        return false;
+    }
+    std::string user(buffer2, len2);
+    auto j = json::parse(user);
+    if (j["type"] == "create") {
+        if (createUser(user)) {
+            notifyClient(clientSocket, json{{"type", "success"},{"message", "User created successfully."}}.dump());
+        } else {
+            notifyClient(clientSocket, json{{"type", "error"},{"status", "error"}, {"message", "User already exists."}}.dump());
+            close(clientSocket);
+            return false;
+        }
+    } else if (j["type"] == "verify") {
+        if (verifyUser(user)) {
+            notifyClient(clientSocket, json{{"type", "success"},{"message", "User verified successfully."}}.dump());
+        } else {
+            notifyClient(clientSocket, json{{"type", "error"},{"status", "error"}, {"message", "Invalid credentials."}}.dump());
+            close(clientSocket);
+            return false;
+        }
+    } else {
+        notifyClient(clientSocket, json{{"type", "error"},{"status", "error"}, {"message", "Invalid request."}}.dump());
+        close(clientSocket);
+        return false;
+    }
+    return true;
 }
+
 
 // handle client pair (aka a chat)
 void Server::handlePair(int clientSocket1, int clientSocket2) {
@@ -158,4 +201,39 @@ void Server::processClientMessage(int sourceSock, int targetSock, fd_set &readfd
 // notify client (json)
 void Server::notifyClient(int clientSocket, const std::string &jsonMessage) {
     send(clientSocket, jsonMessage.c_str(), jsonMessage.size(), 0);
+}
+
+// creates a new user
+bool Server::createUser(std::string& user) {
+    // read user message
+    auto j = json::parse(user);
+    std::string username = j["username"];
+    std::string password = j["password"];
+
+    // decrypt the username and password
+    username = this->rsa.decrypt(username);
+    password = this->rsa.decrypt(password);
+
+    // add the user to the users file using the user handler
+    UserHandler userHandler("assets/users.txt");
+    if (userHandler.AddUser(username, password)) {
+        return true;
+    }
+    return false;
+}
+
+// verifies an existing user
+bool Server::verifyUser(std::string& user) {
+
+    auto j = json::parse(user);
+    std::string username = j["username"];
+    std::string password = j["password"];
+    
+    // verify the user using the user handler
+    UserHandler userHandler("assets/users.txt");
+    if (userHandler.VerifyUser(username, password)) {
+        return true;
+    } else {
+        return false;
+    }
 }
