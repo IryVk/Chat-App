@@ -1,13 +1,33 @@
-#include "common/aes_ecb.h"
+/**
+ * @file common/aes_ecb.cpp
+ * @date 2024-04-22
+ * @author Arwa Essam Abdelaziz
+ * @brief This file contains the implementation of the AESECB class
+ * 
+ * This file contains the implementation of the AESECB class, which is used to perform AES encryption and decryption in ECB mode.
+*/
 
+#include <common/aes_ecb.h>
 
-// constructor
+/**
+ * @brief Construct a new AESECB object
+ * 
+ * @param key The AES key to use for encryption and decryption
+ * 
+ * @return AESECB object
+*/
 AESECB::AESECB(std::string& key) : key(key) {}
 
-// encrypt plaintext using AES in ECB mode
+/**
+ * @brief Encrypt plaintext using AES in ECB mode
+ * 
+ * @param plaintext The plaintext to encrypt
+ * 
+ * @return std::string The encrypted ciphertext
+*/
 std::string AESECB::Encrypt(const std::string& plaintext) {
     std::string ciphertext;
-    // setup AES key and ECB mode. No IV is needed for ECB.
+    // Setup AES key and ECB mode. No IV is needed for ECB.
     ECB_Mode<AES>::Encryption ecbEncryption((byte*)key.data(), key.size());
     
     // Use StringSource and StreamTransformationFilter for encryption with PKCS #7 padding
@@ -18,12 +38,18 @@ std::string AESECB::Encrypt(const std::string& plaintext) {
         )
     );
 
-    // make hex
+    // Turn into hex
     ciphertext = toHex(ciphertext);
     return ciphertext;
 }
 
-// decrypt ciphertext using AES in ECB mode
+/**
+ * @brief Decrypt ciphertext using AES in ECB mode
+ * 
+ * @param ciphertext The ciphertext to decrypt
+ * 
+ * @return std::string The decrypted plaintext
+*/
 std::string AESECB::Decrypt(const std::string& ciphertext) {
     // convert from hex
     std::string ct = fromHex(ciphertext);
@@ -42,7 +68,13 @@ std::string AESECB::Decrypt(const std::string& ciphertext) {
     return decryptedText;
 }
 
-// generate key from DH shared secret
+/**
+ * @brief Derive an AES key from a shared secret
+ * 
+ * @param sharedSecret The shared secret to derive the key from
+ * 
+ * @return std::string The derived AES key
+*/
 std::string AESECB::keyFromSharedSecret(const SecByteBlock& sharedSecret) {
     // use SHA256 to hash the shared secret to get a 32-byte key
     std::string key;
@@ -57,7 +89,13 @@ std::string AESECB::keyFromSharedSecret(const SecByteBlock& sharedSecret) {
     return key;
 }
 
-// utility function to convert string to hex
+/**
+ * @brief Utility function to convert string to hex
+ * 
+ * @param input The string to convert to hex
+ * 
+ * @return std::string The hex representation of the input string
+*/
 std::string AESECB::toHex(const std::string& input) {
     std::string hex;
     StringSource ss(input, true,
@@ -68,7 +106,13 @@ std::string AESECB::toHex(const std::string& input) {
     return hex;
 }
 
-// utility function to convert hex to string
+/**
+ * @brief Utility function to convert hex to string
+ * 
+ * @param input The hex string to convert to a normal string
+ * 
+ * @return std::string The normal string representation of the input hex string
+*/
 std::string AESECB::fromHex(const std::string& input) {
     std::string decoded;
     StringSource ss(input, true,

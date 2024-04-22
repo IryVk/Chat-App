@@ -5,22 +5,28 @@
 #include <memory>
 #include <utility>  
 
-// linked list of threads
+/**
+ * @brief A class to manage a list of threads
+ * 
+ * This class is used to manage a list of threads. It provides methods to add threads to the list, join all threads in the list, clear the list, and check if the list is empty.
+ * 
+ * The class is non-copyable and non-movable.
+*/
 class ThreadList {
 public:
     ThreadList();
     ~ThreadList();
 
-    // non-copyable and non-movable
+    // Non-copyable and non-movable
     ThreadList(const ThreadList&) = delete;
     ThreadList& operator=(const ThreadList&) = delete;
     ThreadList(ThreadList&&) = delete;
     ThreadList& operator=(ThreadList&&) = delete;
 
-    void addThread(std::thread newThread); // add a new thread to the list
-    void joinAll(); // join all threads in the list
-    void clear(); // clear all nodes from the list (automatically joins threads)
-    bool isEmpty() const; // check if the list is empty
+    void addThread(std::thread newThread); // Add a new thread to the list
+    void joinAll(); // Join all threads in the list
+    void clear(); // Clear all nodes from the list (automatically joins threads)
+    bool isEmpty() const; // Check if the list is empty
 
 private:
     struct Node {
@@ -29,7 +35,7 @@ private:
         Node(std::thread newThread);
     };
 
-    // head of the list, using unique_ptr to manage memory
+    // Head of the list, using unique_ptr to manage memory
     std::unique_ptr<Node> head;
 };
 

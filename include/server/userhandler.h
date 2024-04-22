@@ -7,23 +7,23 @@
 #include <fstream>
 #include <sstream>
 
+/**
+ * @brief A class to manage user data
+ * 
+ * This class is used to manage user data. It provides methods to add a new user, verify a user's credentials, and find a user's salted hash.
+ */
 class UserHandler {
 public:
-    // constructor that specifies the file used for storing user data
-    UserHandler(const std::string& filename);
+    UserHandler(const std::string& filename); // Constructor that specifies the file used for storing user data
 
-    // adds a new user with the given username and password
-    bool AddUser(const std::string& username, const std::string& password);
-
-    // verifies if the provided username and password are correct
-    bool VerifyUser(const std::string& username, const std::string& password);
+    bool AddUser(const std::string& username, const std::string& password); // Adds a new user with the given username and password
+    bool VerifyUser(const std::string& username, const std::string& password); // Verifies if the provided username and password are correct
 
 private:
     std::string filename;
 
-    // utility function to find a user's salted hash by username
     // use std::optional to indicate that the user may not exist instead of returning empty string
-    std::optional<std::string> FindUserSaltedHash(const std::string& username);
+    std::optional<std::string> FindUserSaltedHash(const std::string& username); // Utility function to find a user's salted hash by username
 };
 
 #endif // USERHANDLER_H

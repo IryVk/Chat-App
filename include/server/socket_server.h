@@ -17,6 +17,13 @@
 #include <cryptopp/base64.h>
 #include <sstream>
 
+/**
+ * @brief A class to manage the server side of the chat application
+ * 
+ * This class is used to manage the server side of the chat application. It provides methods to start the server, handle client connections, and manage client pairs for communication.
+ * 
+ * The class uses the Crypto++ library for encryption and decryption, and the nlohmann json library for handling JSON messages.
+*/
 class Server {
 public:
     Server(int port); // constructor
