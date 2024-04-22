@@ -208,11 +208,11 @@ bool RSAWrapper::receivePublicKey(std::string& jsonStr, CryptoPP::RSA::PublicKey
         std::string modulusDecoded, exponentDecoded;
         // Decode the modulus and exponent
         decoder.Attach(new CryptoPP::StringSink(modulusDecoded));
-        decoder.Put((const byte*)j["modulus"].get<std::string>().data(), j["modulus"].get<std::string>().size());
+        decoder.Put(reinterpret_cast<const byte*>(j["modulus"].get<std::string>().data()), j["modulus"].get<std::string>().size());
         decoder.MessageEnd();
 
         decoder.Attach(new CryptoPP::StringSink(exponentDecoded));
-        decoder.Put((const byte*)j["exponent"].get<std::string>().data(), j["exponent"].get<std::string>().size());
+        decoder.Put(reinterpret_cast<const byte*>(j["exponent"].get<std::string>().data()), j["exponent"].get<std::string>().size());
         decoder.MessageEnd();
 
         // Convert to CryptoPP::Integer
