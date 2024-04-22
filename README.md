@@ -35,7 +35,7 @@ This project is a chat application developed in C++ as part of the coursework fo
 ## Installation
 
 ### Dependencies
-RUN ON LINUX
+**RUN ON LINUX** <br>
 Before installing the Secure Password Manager, you must install Crypto++ library on your Linux system.
 
 1. Update your packaged list:
@@ -136,10 +136,10 @@ Secure-Password-Manager/  # project root
 + Server can authenticate users by comparing provided RSA-encrypted credentials with stored hashed credentials.
 + Server makes a private chatroom for every 2 Clients.
 + Clients can encrypt messages using AES.
-+ Clients negotiate shared secret using Deffie Hellman.
++ Clients negotiate shared secret using Diffie Hellman.
 + Client has a shell like interface built using ncurses.
 + Users can execute commands in the Client's terminal like !exit and !disconnect.
-+ Server notifies Client when other Client disconnects, allowing for seemless transistion between chats.
++ Server notifies Client when other Client disconnects, allowing for seamless transition between chats.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

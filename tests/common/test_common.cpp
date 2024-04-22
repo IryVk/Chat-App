@@ -10,12 +10,12 @@
 #include <common/rsa_wrapper.h>
 
 // ==================== AESECB Tests ====================
-// fixture class for AESEncryption tests
+// Fixture Class for AESEncryption tests
 class AESEncryptionTest : public ::testing::Test {
 protected:
 };
 
-// Test Case: test encryption and decryption for a basic string
+// Test Case: Test encryption and decryption for a basic string
 TEST_F(AESEncryptionTest, EncryptDecryptBasicString) {
     std::string key = "16bytesecretkey!"; 
     AESECB aes(key);
@@ -27,7 +27,7 @@ TEST_F(AESEncryptionTest, EncryptDecryptBasicString) {
     EXPECT_EQ(plaintext, decryptedText);
 }
 
-// Test Case: test encryption and decryption for an empty string
+// Test Case: Test encryption and decryption for an empty string
 TEST_F(AESEncryptionTest, EncryptDecryptEmptyString) {
     std::string key = "16bytesecretkey!";
     AESECB aes(key);
@@ -39,7 +39,7 @@ TEST_F(AESEncryptionTest, EncryptDecryptEmptyString) {
     EXPECT_EQ(plaintext, decryptedText);
 }
 
-// Test Case: test encryption and decryption for a string that is exactly one block size
+// Test Case: Test encryption and decryption for a string that is exactly one block size
 TEST_F(AESEncryptionTest, EncryptDecryptOneBlockSize) {
     std::string key = "16bytesecretkey!";
     AESECB aes(key);
@@ -52,7 +52,7 @@ TEST_F(AESEncryptionTest, EncryptDecryptOneBlockSize) {
     EXPECT_EQ(plaintext, decryptedText);
 }
 
-// Test Case: test encryption and decryption for a string that is 1 byte less than a block size
+// Test Case: Test encryption and decryption for a string that is 1 byte less than a block size
 TEST_F(AESEncryptionTest, EncryptDecryptOneByteLessThanBlockSize) {
     std::string key = "16bytesecretkey!";
     AESECB aes(key);
@@ -66,16 +66,16 @@ TEST_F(AESEncryptionTest, EncryptDecryptOneByteLessThanBlockSize) {
 }
 
 // ==================== DHKeyExchange Tests ====================
-// Test Case: test fixture for DHKeyExchange
+// Test fixture for DHKeyExchange
 class DHKeyExchangeTest : public ::testing::Test {
 protected:
     static void SetUpTestCase() {
-        // set up the domain parameters once for all tests
+        // Set up the domain parameters once for all tests
         DHKeyExchange::createDomainParameters();
     }
 
     void SetUp() override {
-        // each test will have fresh key pairs
+        // Each test will have fresh key pairs
         DHKeyExchange::createAsymmetricKey(DHKeyExchange::dhA, privKeyA, pubKeyA);
         DHKeyExchange::createAsymmetricKey(DHKeyExchange::dhA, privKeyB, pubKeyB);
     }
@@ -84,13 +84,13 @@ protected:
     CryptoPP::SecByteBlock privKeyB, pubKeyB;
 };
 
-// Test Case: test for parameter initialization
+// Test Case: Test for parameter initialization
 TEST_F(DHKeyExchangeTest, DomainParametersAreValid) {
     ASSERT_NE(DHKeyExchange::dhA.GetGroupParameters().GetModulus(), 0);
     ASSERT_NE(DHKeyExchange::dhA.GetGroupParameters().GetGenerator(), 0);
 }
 
-// Test Case: test for asymmetric key generation
+// Test Case: Test for asymmetric key generation
 TEST_F(DHKeyExchangeTest, AsymmetricKeyGeneration) {
     ASSERT_GT(privKeyA.size(), 0);
     ASSERT_GT(pubKeyA.size(), 0);
@@ -98,7 +98,7 @@ TEST_F(DHKeyExchangeTest, AsymmetricKeyGeneration) {
     ASSERT_GT(pubKeyB.size(), 0);
 }
 
-// Test Case: test for symmetric key agreement
+// Test Case: Test for symmetric key agreement
 TEST_F(DHKeyExchangeTest, SymmetricKeyAgreement) {
     try {
         CryptoPP::SecByteBlock sharedA = CryptoPP::SecByteBlock(DHKeyExchange::dhA.AgreedValueLength());
@@ -107,7 +107,7 @@ TEST_F(DHKeyExchangeTest, SymmetricKeyAgreement) {
         CryptoPP::SecByteBlock sharedB = CryptoPP::SecByteBlock(DHKeyExchange::dhA.AgreedValueLength());
         ASSERT_TRUE(DHKeyExchange::dhA.Agree(sharedB, privKeyB, pubKeyA));
 
-        // check if both shared secrets are equal
+        // Check if both shared secrets are equal
         ASSERT_EQ(memcmp(sharedA.BytePtr(), sharedB.BytePtr(), sharedA.size()), 0);
     } catch (const std::exception& e) {
         FAIL() << "Exception during symmetric key agreement: " << e.what();
@@ -119,9 +119,9 @@ protected:
     CryptoPP::AutoSeededRandomPool rng;
     CryptoPP::SecByteBlock sharedSecret;
 
-    // set up a known shared secret for testing
+    // Set up a known shared secret for testing
     void SetUp() override {
-        sharedSecret = CryptoPP::SecByteBlock(32); // assuming a 32-byte shared secret
+        sharedSecret = CryptoPP::SecByteBlock(32); // Assuming a 32-byte shared secret
         rng.GenerateBlock(sharedSecret, sharedSecret.size());
     }
 };

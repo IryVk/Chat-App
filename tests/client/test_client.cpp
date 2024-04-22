@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-// Placeholder test
+// Placeholder test so that the test suite runs
 TEST(PlaceholderTest, Placeholder) {
     EXPECT_EQ(1, 1);
 }

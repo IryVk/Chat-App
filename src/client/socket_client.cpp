@@ -236,7 +236,7 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     }
 }
 
-// Utility functions
+// ================ Utility functions =================
 
 /**
  * @brief Convert a CryptoPP::Integer to a hex string
