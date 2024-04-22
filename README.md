@@ -87,7 +87,7 @@ Before installing the Secure Password Manager, you must install Crypto++ library
 
 
 
-DEMO
+DEMO VIDEO
 
 
 
@@ -131,8 +131,15 @@ Secure-Password-Manager/  # project root
 
 ### Features
 
-+ 
-+ 
++ Server that can handle many users at the same time.
++ Server and Client communicate using RSA encryption.
++ Server can authenticate users by comparing provided RSA-encrypted credentials with stored hashed credentials.
++ Server makes a private chatroom for every 2 Clients.
++ Clients can encrypt messages using AES.
++ Clients negotiate shared secret using Deffie Hellman.
++ Client has a shell like interface built using ncurses.
++ Users can execute commands in the Client's terminal like !exit and !disconnect.
++ Server notifies Client when other Client disconnects, allowing for seemless transistion between chats.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
