@@ -8,6 +8,7 @@
 */
 
 #include <common/rsa_wrapper.h>
+#include <cryptopp/cryptlib.h>
 
 using json = nlohmann::json;
 
