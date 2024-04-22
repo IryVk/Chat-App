@@ -140,6 +140,7 @@ bool Server::verifyClient(int clientSocket){
 // handle client pair (aka a chat)
 void Server::handlePair(int clientSocket1, int clientSocket2) {
     notifyClient(clientSocket1, json{{"type", "connected"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
+    notifyClient(clientSocket2, json{{"type", "info"},{"message", "You are now chatting with an anonymous stranger"}}.dump());
     // create a thread to handle the chat
     fd_set readfds;
     // set of socket descriptors

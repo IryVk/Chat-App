@@ -161,7 +161,7 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
     if (type == "text") {
         message = this->aes.Decrypt(AESECB::fromHex(message));
         std::string user = this->aes.Decrypt(AESECB::fromHex(j["user"]));
-        printColoredMessage(user + message, MAGENTA, outputWin); // print the message in magenta
+        printColoredMessage(user +": " + message, MAGENTA, outputWin); // print the message in magenta
     } else if (type == "error") {
         printColoredMessage("Server: " + message, RED, outputWin); // print the error in red
     } else if (type == "warning") {
@@ -175,6 +175,7 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
         this->keyExchangeResponse(jsonStr); // respond to the key exchange
     } else if (type == "connected") {
         this->keyExchangeInit(); // initiate the key exchange
+        printColoredMessage("INFO: " + message, BLUE, outputWin);
     } else if (type == "key_exchange_response") {
         printColoredMessage("dh_key_response: " + jsonStr, CYAN, outputWin); // print the key exchange response in cyan
         this->setKey(jsonStr); // set the key for encryption (for the initiator)

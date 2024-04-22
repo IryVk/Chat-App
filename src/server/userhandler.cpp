@@ -1,4 +1,5 @@
 #include <server/userhandler.h>
+#include <iostream>
 
 
 // constructor that specifies the file used for storing user data
@@ -31,6 +32,10 @@ bool UserHandler::VerifyUser(const std::string& username, const std::string& pas
 // utility function to find a user's salted hash by username
 std::optional<std::string> UserHandler::FindUserSaltedHash(const std::string& username) {
     std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return std::nullopt;
+    }
     std::string line;
     while (getline(file, line)) {
         std::istringstream iss(line);

@@ -11,7 +11,7 @@ protected:
 
     SocketServerTest() {
         // initialize with a test port
-        server = new Server(12345);
+        server = new Server(4444);
     }
 
     ~SocketServerTest() override {
