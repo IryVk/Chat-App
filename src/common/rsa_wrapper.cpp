@@ -218,8 +218,10 @@ bool RSAWrapper::receivePublicKey(std::string& jsonStr, CryptoPP::RSA::PublicKey
         decoder.MessageEnd();
 
         // Convert to CryptoPP::Integer
-        CryptoPP::Integer modulus((const byte*)modulusDecoded.data(), modulusDecoded.size());
-        CryptoPP::Integer exponent((const byte*)exponentDecoded.data(), exponentDecoded.size());
+        const byte* modulusDataDecoded = (const byte*)modulusDecoded.data();
+        const byte* exponentDataDecoded = (const byte*)exponentDecoded.data();
+        CryptoPP::Integer modulus(modulusDataDecoded, modulusDecoded.size());
+        CryptoPP::Integer exponent(exponentDataDecoded, exponentDecoded.size());
 
         // Set the public key
         publicKey.Initialize(modulus, exponent);
