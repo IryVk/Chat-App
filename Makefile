@@ -1,5 +1,5 @@
 # Compiler to use
-CXX = g++
+CXX = g++-9
 
 # Compiler flags
 CXXFLAGS = -Wall -std=c++17 -Wno-deprecated-declarations -Iinclude -I/usr/include/crypto++ -I/usr/include/openssl
