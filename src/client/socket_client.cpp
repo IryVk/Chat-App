@@ -202,6 +202,7 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
             // verify user
             json response = json{{"type", "create"}, {"username", enc_username}, {"password", enc_password}};
             sendMessage(response);
+            authType = 1;
         }
     }
     else {

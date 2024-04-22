@@ -122,6 +122,8 @@ int main() {
                     wprintw(outputWin, "Server closed connection.\n");
                     wrefresh(outputWin);
                     client.status = false;
+                    wprintw(outputWin, "Press ENTER to reconnect...\n");
+                    wrefresh(outputWin);
                 } else if (len == -1) { // if the message is -1, there was an error or timeout
                     // check if it was just a timeout or a real error
                     if (errno == EWOULDBLOCK || errno == EAGAIN) {
