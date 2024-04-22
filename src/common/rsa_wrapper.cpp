@@ -8,7 +8,8 @@
 */
 
 #include <common/rsa_wrapper.h>
-#include <cryptopp/cryptlib.h>
+
+typedef unsigned char byte;
 
 using json = nlohmann::json;
 
