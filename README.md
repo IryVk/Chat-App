@@ -87,7 +87,11 @@ Before installing the Secure Password Manager, you must install Crypto++ library
 
 
 
-DEMO VIDEO
+DEMO
+
+https://github.com/IryVk/Chat-App/assets/114566375/9557d62b-ba35-4e7c-ae83-40b75599a19f
+
+
 
 
 
