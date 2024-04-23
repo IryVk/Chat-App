@@ -22,7 +22,7 @@ using json = nlohmann::json;
  * @return Server object
 */
 Server::Server(int port) : rsa(), isRunning(true) {
-    // create a socket
+    // Create a socket
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == -1) { // Check if the socket was created successfully
         std::cerr << "Failed to create socket." << std::endl;

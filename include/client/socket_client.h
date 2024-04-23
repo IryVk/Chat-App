@@ -28,7 +28,6 @@ public:
 
     bool connectToServer(); // Connect to the server
     void disconnect(); // Disconnect from the server
-    void receiveMessages(); // Receive messages from the server
     void sendMessage(const nlohmann::json& message); // Send a message to the server (json)
 
     // Atomic variable to control the status of the client (can be accessed by multiple threads)

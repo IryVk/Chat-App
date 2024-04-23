@@ -57,25 +57,30 @@ protected:
     }
 };
 
-TEST_F(UserHandlerTest, AddUser_NewUser_ReturnsTrue) {
+// Test Case: successfully add a new user
+TEST_F(UserHandlerTest, AddNewUserReturnsTrue) {
     ASSERT_TRUE(userHandler->AddUser("newuser", "password123"));
 }
 
-TEST_F(UserHandlerTest, AddUser_ExistingUser_ReturnsFalse) {
+// Test Case: adding an existing user should return false
+TEST_F(UserHandlerTest, AddExistingUserReturnsFalse) {
     AddUserDirectly("existinguser", "password123");
     ASSERT_FALSE(userHandler->AddUser("existinguser", "newpassword"));
 }
 
-TEST_F(UserHandlerTest, VerifyUser_CorrectCredentials_ReturnsTrue) {
+// Test Case: verify correct credentials
+TEST_F(UserHandlerTest, CorrectCredentialsReturnsTrue) {
     AddUserDirectly("user", "correctpassword");
     ASSERT_TRUE(userHandler->VerifyUser("user", "correctpassword"));
 }
 
-TEST_F(UserHandlerTest, VerifyUser_IncorrectCredentials_ReturnsFalse) {
+// Test Case: verify incorrect credentials
+TEST_F(UserHandlerTest, IncorrectCredentialsReturnsFalse) {
     AddUserDirectly("user", "correctpassword");
     ASSERT_FALSE(userHandler->VerifyUser("user", "wrongpassword"));
 }
 
-TEST_F(UserHandlerTest, VerifyUser_NonexistentUser_ReturnsFalse) {
+// Test Case: verify nonexistent user
+TEST_F(UserHandlerTest, NonexistentUserReturnsFalse) {
     ASSERT_FALSE(userHandler->VerifyUser("nonexistent", "password"));
 }
