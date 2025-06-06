@@ -221,14 +221,14 @@ void Client::handleJsonMessage(const std::string& jsonStr, WINDOW* outputWin) {
         std::string enc_username = rsa.encrypt(username, rsa.publicKeyB);
         std::string enc_password = rsa.encrypt(password, rsa.publicKeyB);
         if (authType == 1) {
-            // Create user
-            json response = json{{"type", "verify"}, {"username", username}, {"password", password}};
+            // Verify existing user
+            json response = json{{"type", "verify"}, {"username", enc_username}, {"password", enc_password}};
             sendMessage(response);
         } else if (authType == 2) {
-            // Verify user
+            // Create a new user
             json response = json{{"type", "create"}, {"username", enc_username}, {"password", enc_password}};
             sendMessage(response);
-            authType = 1;
+            authType = 1; // Next prompt should attempt verification
         }
     }
     else {

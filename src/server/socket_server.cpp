@@ -321,7 +321,10 @@ bool Server::verifyUser(std::string& user) {
     auto j = json::parse(user);
     std::string username = j["username"];
     std::string password = j["password"];
-    
+    // Decrypt credentials received from the client
+    username = this->rsa.decrypt(username);
+    password = this->rsa.decrypt(password);
+
     // Verify the user using the user handler
     UserHandler userHandler("assets/users.txt");
     if (userHandler.VerifyUser(username, password)) {
